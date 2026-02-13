@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import { ChatMessage } from "./ChatMessage";
-import { ChatInput } from "./ChatInput";
+import { ChatInput, type ChatInputHandle } from "./ChatInput";
 import { BotanicalLeaf, BotanicalOlive } from "./Botanicals";
 import { useClaude } from "../hooks/useClaude";
 import { useStore } from "../stores/store";
@@ -25,6 +25,7 @@ export function ChatPanel({ sessionId }: Props) {
   const renameSession = useStore((s) => s.renameSession);
   const { sendMessage, abort } = useClaude(sessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<ChatInputHandle>(null);
   const [exporting, setExporting] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
 
@@ -50,7 +51,7 @@ export function ChatPanel({ sessionId }: Props) {
         if (newName) renameSession(sessionId, newName);
       }
 
-      sendMessage(toSend);
+      sendMessage(toSend, toSend !== trimmed ? trimmed : undefined);
     },
     [session, sessionId, sendMessage, renameSession],
   );
@@ -130,20 +131,29 @@ export function ChatPanel({ sessionId }: Props) {
             <BotanicalOlive className="w-32 h-12 text-border mt-1" />
           </div>
         ) : (
-          session.messages.map((msg) => (
-            <ChatMessage key={msg.id} message={msg} />
-          ))
-        )}
-        {session.isStreaming && session.messages[session.messages.length - 1]?.content === "" && (
-          <div className="flex justify-start mb-3">
-            <div className="rounded-2xl px-4 py-3 bg-assistant-bubble">
-              <div className="flex gap-1.5 items-center py-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-taupe animate-gentle-pulse" />
-                <div className="w-1.5 h-1.5 rounded-full bg-taupe animate-gentle-pulse" style={{ animationDelay: "0.3s" }} />
-                <div className="w-1.5 h-1.5 rounded-full bg-taupe animate-gentle-pulse" style={{ animationDelay: "0.6s" }} />
+          <>
+            {session.messages.map((msg) => {
+              const lastMsg = session.messages[session.messages.length - 1];
+              if (msg.id === lastMsg?.id && msg.role === "assistant" && !msg.content && session.isStreaming) return null;
+              return <ChatMessage key={msg.id} message={msg} />;
+            })}
+            {session.isStreaming && (
+              <div className="flex justify-start mb-3">
+                <div className="rounded-2xl px-4 py-3 bg-assistant-bubble flex items-center gap-2">
+                  <div className="flex gap-1.5 items-center py-1">
+                    {[0, 0.3, 0.6].map((delay) => (
+                      <div
+                        key={delay}
+                        className="w-1.5 h-1.5 rounded-full bg-taupe animate-gentle-pulse"
+                        style={{ animationDelay: `${delay}s` }}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs text-text-muted">Claude está trabajando…</span>
+                </div>
               </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -173,7 +183,7 @@ export function ChatPanel({ sessionId }: Props) {
                       type="button"
                       onClick={() => {
                         setTemplatesOpen(false);
-                        handleSend(t.text);
+                        chatInputRef.current?.insertText(t.text);
                       }}
                       className="w-full text-left px-3 py-2 text-sm text-text hover:bg-surface transition-colors"
                     >
@@ -186,6 +196,7 @@ export function ChatPanel({ sessionId }: Props) {
           </div>
         </div>
         <ChatInput
+          ref={chatInputRef}
           onSend={handleSend}
           onAbort={abort}
           isStreaming={session.isStreaming}

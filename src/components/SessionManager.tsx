@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState, useEffect } from "react";
+import { useRef, useCallback, useState, useEffect, lazy, Suspense } from "react";
 import {
   DockviewReact,
   type DockviewReadyEvent,
@@ -7,18 +7,31 @@ import {
 } from "dockview-react";
 import "dockview-react/dist/styles/dockview.css";
 import { ChatPanel } from "./ChatPanel";
-import { MarkdownViewerPanel } from "./MarkdownViewerPanel";
 import { useStore } from "../stores/store";
-import { sidecar } from "../lib/sidecar";
+
+const MarkdownViewerPanel = lazy(() =>
+  import("./MarkdownViewerPanel").then((m) => ({ default: m.MarkdownViewerPanel })),
+);
 
 function ChatPanelComponent(props: IDockviewPanelProps<{ sessionId: string }>) {
-  return <ChatPanel sessionId={props.params.sessionId} />;
+  const sessionId = props.params.sessionId;
+  return <ChatPanel key={sessionId} sessionId={sessionId} />;
 }
 
 function MarkdownPanelComponent(
   props: IDockviewPanelProps<{ filePath: string }>,
 ) {
-  return <MarkdownViewerPanel filePath={props.params.filePath} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full items-center justify-center text-text-muted text-sm">
+          Cargando…
+        </div>
+      }
+    >
+      <MarkdownViewerPanel filePath={props.params.filePath} />
+    </Suspense>
+  );
 }
 
 const components = {
@@ -108,10 +121,9 @@ export function SessionManager() {
     setMarkdownPanels((prev) => ({ ...prev, [id]: { title } }));
   }, [openMarkdownPath, setOpenMarkdownPath]);
 
-  const addNewSession = useCallback(async () => {
+  const addNewSession = useCallback(() => {
     const cwd = rootDir ?? "/";
     const sessionId = createSession(cwd);
-    await sidecar.createSession(sessionId, cwd);
 
     if (apiRef.current) {
       apiRef.current.addPanel({
@@ -234,6 +246,37 @@ export function SessionManager() {
   const sessionIds = Object.keys(sessions);
   const sessionNames = sessionIds.map((id) => sessions[id]?.name ?? "").join("\0");
 
+  const activatePanel = useCallback((id: string) => {
+    setActiveSession(id);
+    const panel = apiRef.current?.getPanel(id);
+    if (panel) panel.api.setActive();
+  }, [setActiveSession]);
+
+  const closePanel = useCallback((id: string) => {
+    const panel = apiRef.current?.getPanel(id);
+    if (panel) apiRef.current?.removePanel(panel);
+  }, []);
+
+  const tabOrderRef = useRef<string[]>([]);
+  useEffect(() => {
+    tabOrderRef.current = [...sessionIds, ...Object.keys(markdownPanels)];
+  }, [sessionIds, markdownPanels]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target?.closest("input, textarea, [contenteditable=true]")) return;
+      if ((!e.metaKey && !e.ctrlKey) || e.key < "1" || e.key > "9") return;
+      const panelId = tabOrderRef.current[parseInt(e.key, 10) - 1];
+      if (panelId) {
+        e.preventDefault();
+        activatePanel(panelId);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activatePanel]);
+
   // Sincronizar título del panel con session.name (p. ej. al renombrar desde el primer mensaje)
   useEffect(() => {
     const api = apiRef.current;
@@ -264,13 +307,7 @@ export function SessionManager() {
                     ? "bg-bg text-text font-medium shadow-sm"
                     : "text-text-muted hover:text-text hover:bg-bg/50"
                 }`}
-                onClick={() => {
-                  setActiveSession(id);
-                  const panel = apiRef.current?.getPanel(id);
-                  if (panel) {
-                    panel.api.setActive();
-                  }
-                }}
+                onClick={() => activatePanel(id)}
                 onDoubleClick={() => handleDoubleClick(id)}
               >
                 {editingId === id ? (
@@ -300,10 +337,7 @@ export function SessionManager() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      const panel = apiRef.current?.getPanel(id);
-                      if (panel) {
-                        apiRef.current?.removePanel(panel);
-                      }
+                      closePanel(id);
                     }}
                     className="opacity-0 group-hover:opacity-100 text-text-light hover:text-text-muted transition-opacity text-xs ml-1"
                   >
@@ -323,22 +357,13 @@ export function SessionManager() {
                     ? "bg-bg text-text font-medium shadow-sm"
                     : "text-text-muted hover:text-text hover:bg-bg/50"
                 }`}
-                onClick={() => {
-                  setActiveSession(id);
-                  const panel = apiRef.current?.getPanel(id);
-                  if (panel) {
-                    panel.api.setActive();
-                  }
-                }}
+                onClick={() => activatePanel(id)}
               >
                 <span className="truncate max-w-[120px]">{title}</span>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    const panel = apiRef.current?.getPanel(id);
-                    if (panel) {
-                      apiRef.current?.removePanel(panel);
-                    }
+                    closePanel(id);
                   }}
                   className="opacity-0 group-hover:opacity-100 text-text-light hover:text-text-muted transition-opacity text-xs ml-1"
                 >

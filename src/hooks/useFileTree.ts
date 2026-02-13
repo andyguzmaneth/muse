@@ -8,7 +8,6 @@ export interface FileNode {
   children?: FileNode[];
 }
 
-// Directories to always skip
 const IGNORED = new Set([
   "node_modules",
   ".git",
@@ -20,6 +19,10 @@ const IGNORED = new Set([
   "__pycache__",
   ".cache",
 ]);
+
+function cacheKey(dirPath: string) {
+  return `muse-filetree-${dirPath}`;
+}
 
 async function buildTree(
   dirPath: string,
@@ -36,8 +39,6 @@ async function buildTree(
   }
 
   const nodes: FileNode[] = [];
-
-  // Sort: folders first, then alphabetical
   const sorted = entries
     .filter((e) => !IGNORED.has(e.name))
     .sort((a, b) => {
@@ -56,7 +57,6 @@ async function buildTree(
     if (entry.isDirectory && depth < maxDepth - 1) {
       node.children = await buildTree(fullPath, depth + 1, maxDepth);
     } else if (entry.isDirectory) {
-      // Placeholder for lazy loading
       node.children = [];
     }
 
@@ -66,15 +66,40 @@ async function buildTree(
   return nodes;
 }
 
+function getCachedTree(dirPath: string): FileNode[] | null {
+  try {
+    const raw = sessionStorage.getItem(cacheKey(dirPath));
+    return raw ? (JSON.parse(raw) as FileNode[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedTree(dirPath: string, tree: FileNode[]): void {
+  try {
+    sessionStorage.setItem(cacheKey(dirPath), JSON.stringify(tree));
+  } catch {
+    // ignore
+  }
+}
+
 export function useFileTree() {
   const [tree, setTree] = useState<FileNode[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const loadDirectory = useCallback(async (dirPath: string) => {
+  const loadDirectory = useCallback(async (dirPath: string, forceRefresh = false) => {
+    if (!forceRefresh) {
+      const cached = getCachedTree(dirPath);
+      if (cached != null) {
+        setTree(cached);
+        return;
+      }
+    }
     setLoading(true);
     try {
       const nodes = await buildTree(dirPath);
       setTree(nodes);
+      setCachedTree(dirPath, nodes);
     } catch (err) {
       console.error("Failed to load directory:", err);
       setTree([]);

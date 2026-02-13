@@ -33,6 +33,9 @@ class SidecarBridge {
   }
 
   async start(): Promise<void> {
+    if (this.ready) return;
+    if (this.child) return this.readyPromise;
+
     // Get the app directory from Rust to resolve sidecar path
     const projectDir = await invoke<string>("get_project_dir");
     const sidecarScript = `${projectDir}/sidecar/dist/index.js`;

@@ -1,4 +1,8 @@
-import { useState, useCallback, useRef, type KeyboardEvent } from "react";
+import { useState, useCallback, useRef, useImperativeHandle, forwardRef, type KeyboardEvent } from "react";
+
+export interface ChatInputHandle {
+  insertText: (value: string) => void;
+}
 
 interface Props {
   onSend: (message: string) => void;
@@ -7,18 +11,36 @@ interface Props {
   disabled?: boolean;
 }
 
-export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
+export const ChatInput = forwardRef<ChatInputHandle, Props>(function ChatInput(
+  { onSend, onAbort, isStreaming, disabled },
+  ref,
+) {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const syncHeight = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 200) + "px";
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    insertText(value: string) {
+      setText(value);
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        syncHeight();
+      }
+    },
+  }), [syncHeight]);
 
   const handleSend = useCallback(() => {
     const trimmed = text.trim();
     if (!trimmed || isStreaming) return;
     onSend(trimmed);
     setText("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
   }, [text, isStreaming, onSend]);
 
   const handleKeyDown = useCallback(
@@ -31,13 +53,6 @@ export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
     [handleSend],
   );
 
-  const handleInput = useCallback(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 200) + "px";
-  }, []);
-
   return (
     <div className="bg-bg px-4 py-3">
       <div className="flex items-end gap-3 max-w-3xl mx-auto">
@@ -46,7 +61,7 @@ export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            handleInput();
+            syncHeight();
           }}
           onKeyDown={handleKeyDown}
           placeholder="Escribe algo..."
@@ -73,4 +88,4 @@ export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
       </div>
     </div>
   );
-}
+});

@@ -31,6 +31,8 @@ interface AppState {
   // Settings
   apiKey: string;
   model: string;
+  respondInSpanish: boolean;
+  setRespondInSpanish: (value: boolean) => void;
 
   // Actions
   createSession: (cwd: string) => string;
@@ -44,6 +46,8 @@ interface AppState {
   setRootDir: (dir: string) => void;
   setApiKey: (key: string) => void;
   setModel: (model: string) => void;
+  sidecarError: string | null;
+  setSidecarError: (err: string | null) => void;
 }
 
 let sessionCounter = 0;
@@ -56,6 +60,8 @@ export const useStore = create<AppState>((set) => ({
   setOpenMarkdownPath: (path) => set({ openMarkdownPath: path }),
   apiKey: "",
   model: "sonnet",
+  respondInSpanish: true,
+  setRespondInSpanish: (value) => set({ respondInSpanish: value }),
 
   createSession: (cwd: string) => {
     sessionCounter++;
@@ -171,4 +177,6 @@ export const useStore = create<AppState>((set) => ({
   setRootDir: (dir: string) => set({ rootDir: dir }),
   setApiKey: (key: string) => set({ apiKey: key }),
   setModel: (model: string) => set({ model }),
+  sidecarError: null,
+  setSidecarError: (err) => set({ sidecarError: err }),
 }));

@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { FileTree } from "./FileTree";
+import { SidebarFooter } from "./SidebarFooter";
 import { SessionManager } from "./SessionManager";
 import { BotanicalBranch } from "./Botanicals";
 import { useStore } from "../stores/store";
-import { sidecar } from "../lib/sidecar";
+import {
+  getStoredSidebarWidth,
+  setStoredSidebarWidth,
+  getStoredRootDir,
+  setStoredRootDir,
+} from "../lib/layoutStorage";
 
 const DEFAULT_DIR =
   "/Users/andresguzman/Projects/atlas/05-personal-business/projects/luz-de-luz";
@@ -16,35 +22,37 @@ const SIDEBAR_DEFAULT_PERCENT = 34;
 export function AppLayout() {
   const rootDir = useStore((s) => s.rootDir);
   const setRootDir = useStore((s) => s.setRootDir);
-  const [sidecarReady, setSidecarReady] = useState(false);
-  const [sidecarError, setSidecarError] = useState<string | null>(null);
+  const sidecarError = useStore((s) => s.sidecarError);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarWidthPercent, setSidebarWidthPercent] = useState(
-    SIDEBAR_DEFAULT_PERCENT,
-  );
+  const [sidebarWidthPercent, setSidebarWidthPercent] = useState(() => {
+    return getStoredSidebarWidth() ?? SIDEBAR_DEFAULT_PERCENT;
+  });
 
-  // Start the sidecar and set default directory
+  // Restore rootDir from localStorage on first load
   useEffect(() => {
-    if (!rootDir) {
-      setRootDir(DEFAULT_DIR);
+    if (rootDir == null) {
+      const stored = getStoredRootDir();
+      const initial = stored ?? DEFAULT_DIR;
+      setRootDir(initial);
+      setStoredRootDir(initial);
     }
-    sidecar
-      .start()
-      .then(() => setSidecarReady(true))
-      .catch((err) => {
-        console.error("Failed to start sidecar:", err);
-        setSidecarError(String(err));
-      });
-  }, []);
+  }, [rootDir, setRootDir]);
+
+  // Persist sidebar width when it changes
+  useEffect(() => {
+    setStoredSidebarWidth(sidebarWidthPercent);
+  }, [sidebarWidthPercent]);
 
   const handleOpenFolder = useCallback(async () => {
     const selected = await open({
       directory: true,
       multiple: false,
-      title: "Open Project Folder",
+      title: "Abrir carpeta del proyecto",
     });
     if (selected) {
-      setRootDir(selected as string);
+      const path = selected as string;
+      setRootDir(path);
+      setStoredRootDir(path);
     }
   }, [setRootDir]);
 
@@ -87,25 +95,11 @@ export function AppLayout() {
         <div className="max-w-md text-center animate-fade-in">
           <BotanicalBranch className="w-24 h-32 mx-auto mb-6 text-taupe" />
           <p className="text-lg font-medium text-text mb-2">
-            Could not connect to Claude
+            No se pudo conectar con Claude
           </p>
           <p className="text-sm text-text-muted mb-4">{sidecarError}</p>
           <p className="text-xs text-text-light">
-            Make sure Node.js is installed and ANTHROPIC_API_KEY is set.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!sidecarReady) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-bg">
-        <div className="text-center animate-fade-in">
-          <BotanicalBranch className="w-20 h-28 mx-auto mb-4 text-taupe animate-gentle-pulse" />
-          <p className="font-display text-2xl text-accent mb-1">Muse</p>
-          <p className="text-xs text-text-light tracking-wide uppercase">
-            Preparing your workspace...
+            Comprueba que Node.js esté instalado y ANTHROPIC_API_KEY esté definida.
           </p>
         </div>
       </div>
@@ -123,7 +117,7 @@ export function AppLayout() {
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="text-text-muted hover:text-text transition-colors px-1.5 py-0.5 rounded text-sm"
-            title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+            title={sidebarCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"}
           >
             {sidebarCollapsed ? "\u25B6" : "\u25C0"}
           </button>
@@ -140,7 +134,7 @@ export function AppLayout() {
             onClick={handleOpenFolder}
             className="text-xs text-text-muted hover:text-text transition-colors px-2 py-0.5 rounded tracking-wide uppercase"
           >
-            {rootDir ? rootDir.split("/").pop() : "Open Folder"}
+            {rootDir ? rootDir.split("/").pop() : "Abrir carpeta"}
           </button>
         </div>
       </div>
@@ -156,23 +150,24 @@ export function AppLayout() {
               className="h-full flex-shrink-0 flex flex-col bg-bg-secondary overflow-hidden"
               style={{ width: `${sidebarWidthPercent}%` }}
             >
-              <div className="border-b border-border-light px-3 py-2.5 flex items-center justify-between">
+              <div className="border-b border-border-light px-3 py-2.5 flex items-center justify-between flex-shrink-0">
                 <button
                   onClick={handleOpenFolder}
                   className="text-xs text-text-muted hover:text-text transition-colors tracking-wide uppercase font-medium truncate"
-                  title={rootDir ?? "Select folder"}
+                  title={rootDir ?? "Elegir carpeta"}
                 >
-                  {rootDir ? rootDir.split("/").pop() : "Select Folder"}
+                  {rootDir ? rootDir.split("/").pop() : "Elegir carpeta"}
                 </button>
               </div>
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                 <FileTree />
               </div>
+              <SidebarFooter />
             </div>
             <div
               role="separator"
               aria-label="Resize sidebar"
-              title="Drag to resize sidebar"
+              title="Arrastra para cambiar el ancho"
               onMouseDown={handleResizeStart}
               className="w-3 shrink-0 cursor-col-resize select-none bg-border-light hover:bg-accent/40 active:bg-accent/60 border-l border-border-light transition-colors flex items-stretch"
             />

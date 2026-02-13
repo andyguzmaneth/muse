@@ -58,17 +58,33 @@ export function useClaude(sessionId: string | null) {
   }, [sessionId, addMessage, appendToLastMessage, setStreaming, addCost]);
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, displayContent?: string) => {
       if (!sessionId) return;
+      const store = useStore.getState();
+      const session = store.sessions[sessionId];
+      if (!session) return;
+
+      try {
+        await sidecar.start();
+        store.setSidecarError(null);
+      } catch (err) {
+        store.setSidecarError(err instanceof Error ? err.message : String(err));
+        throw err;
+      }
+
+      await sidecar.createSession(sessionId, session.cwd);
+      const messageToSend = store.respondInSpanish
+        ? `Responde en español.\n\n${text}`
+        : text;
 
       addMessage(sessionId, {
         id: `msg-${Date.now()}`,
         role: "user",
-        content: text,
+        content: displayContent ?? text,
         timestamp: Date.now(),
       });
 
-      await sidecar.sendMessage(sessionId, text);
+      await sidecar.sendMessage(sessionId, messageToSend);
     },
     [sessionId, addMessage],
   );
