@@ -232,6 +232,20 @@ export function SessionManager() {
   };
 
   const sessionIds = Object.keys(sessions);
+  const sessionNames = sessionIds.map((id) => sessions[id]?.name ?? "").join("\0");
+
+  // Sincronizar título del panel con session.name (p. ej. al renombrar desde el primer mensaje)
+  useEffect(() => {
+    const api = apiRef.current;
+    if (!api) return;
+    sessionIds.forEach((id) => {
+      const session = sessions[id];
+      if (session) {
+        const panel = api.getPanel(id);
+        if (panel) panel.api.setTitle(session.name);
+      }
+    });
+  }, [sessionIds, sessionNames]);
 
   return (
     <div className="flex h-full flex-col">
@@ -273,7 +287,14 @@ export function SessionManager() {
                     onClick={(e) => e.stopPropagation()}
                   />
                 ) : (
-                  <span className="truncate max-w-[120px]">{session.name}</span>
+                  <span className="truncate max-w-[120px]">
+                    {session.name}
+                    {session.totalCost > 0 && (
+                      <span className="text-xs text-text-light ml-1 tabular-nums">
+                        ${session.totalCost.toFixed(2)}
+                      </span>
+                    )}
+                  </span>
                 )}
                 {sessionIds.length > 1 && (
                   <button
@@ -329,7 +350,7 @@ export function SessionManager() {
           <button
             onClick={addNewSession}
             className="rounded-lg px-2.5 py-1.5 text-sm text-text-muted hover:text-text hover:bg-bg/50 transition-colors flex-shrink-0"
-            title="New session"
+            title="Nueva sesión"
           >
             +
           </button>

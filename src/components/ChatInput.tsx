@@ -39,7 +39,7 @@ export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
   }, []);
 
   return (
-    <div className="border-t border-border-light bg-bg px-4 py-3">
+    <div className="bg-bg px-4 py-3">
       <div className="flex items-end gap-3 max-w-3xl mx-auto">
         <textarea
           ref={textareaRef}
@@ -49,7 +49,7 @@ export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
             handleInput();
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Write something..."
+          placeholder="Escribe algo..."
           disabled={disabled}
           rows={1}
           className="flex-1 resize-none rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-light focus:border-accent focus:outline-none disabled:opacity-50 transition-colors"
