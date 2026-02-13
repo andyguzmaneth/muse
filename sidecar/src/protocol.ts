@@ -5,6 +5,7 @@ export type InboundMessage =
   | { type: "create_session"; id: string; cwd: string; model?: string }
   | { type: "send_message"; sessionId: string; message: string }
   | { type: "abort"; sessionId: string }
+  | { type: "set_api_key"; key: string }
   | { type: "shutdown" };
 
 // Outbound messages (from sidecar → Tauri)

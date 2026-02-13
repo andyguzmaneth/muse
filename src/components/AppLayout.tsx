@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { FileTree } from "./FileTree";
 import { SidebarFooter } from "./SidebarFooter";
 import { SessionManager } from "./SessionManager";
+import { Onboarding } from "./Onboarding";
 import { BotanicalBranch } from "./Botanicals";
 import { useStore } from "../stores/store";
 import {
@@ -10,10 +11,13 @@ import {
   setStoredSidebarWidth,
   getStoredRootDir,
   setStoredRootDir,
+  getStoredApiKey,
 } from "../lib/layoutStorage";
 
+// Ruta por defecto si no hay ninguna guardada. Configurable con VITE_DEFAULT_PROJECT en .env
+// (cada usuario puede poner su propia ruta al proyecto, p. ej. Luz de Luz)
 const DEFAULT_DIR =
-  "/Users/andresguzman/Projects/atlas/05-personal-business/projects/luz-de-luz";
+  (import.meta.env.VITE_DEFAULT_PROJECT as string | undefined)?.trim() || null;
 
 const SIDEBAR_MIN_PERCENT = 15;
 const SIDEBAR_MAX_PERCENT = 85;
@@ -22,21 +26,30 @@ const SIDEBAR_DEFAULT_PERCENT = 34;
 export function AppLayout() {
   const rootDir = useStore((s) => s.rootDir);
   const setRootDir = useStore((s) => s.setRootDir);
+  const setApiKey = useStore((s) => s.setApiKey);
   const sidecarError = useStore((s) => s.sidecarError);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarWidthPercent, setSidebarWidthPercent] = useState(() => {
     return getStoredSidebarWidth() ?? SIDEBAR_DEFAULT_PERCENT;
   });
 
-  // Restore rootDir from localStorage on first load
+  // Restore rootDir from localStorage, or use default (env) if set
   useEffect(() => {
     if (rootDir == null) {
       const stored = getStoredRootDir();
-      const initial = stored ?? DEFAULT_DIR;
-      setRootDir(initial);
-      setStoredRootDir(initial);
+      const initial = stored || DEFAULT_DIR;
+      if (initial) {
+        setRootDir(initial);
+        setStoredRootDir(initial);
+      }
     }
   }, [rootDir, setRootDir]);
+
+  // Restore API key from localStorage (para que quien reciba el .dmg pueda configurarla en la app)
+  useEffect(() => {
+    const stored = getStoredApiKey();
+    if (stored) setApiKey(stored);
+  }, [setApiKey]);
 
   // Persist sidebar width when it changes
   useEffect(() => {
@@ -99,11 +112,15 @@ export function AppLayout() {
           </p>
           <p className="text-sm text-text-muted mb-4">{sidecarError}</p>
           <p className="text-xs text-text-light">
-            Comprueba que Node.js esté instalado y ANTHROPIC_API_KEY esté definida.
+            Comprueba que Node.js esté instalado y que hayas configurado la API key de Claude en la barra lateral.
           </p>
         </div>
       </div>
     );
+  }
+
+  if (!rootDir) {
+    return <Onboarding onChooseFolder={handleOpenFolder} />;
   }
 
   return (

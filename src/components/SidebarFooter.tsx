@@ -2,14 +2,19 @@ import { useEffect, useState } from "react";
 import { readDir } from "@tauri-apps/plugin-fs";
 import { useStore } from "../stores/store";
 import { loadProjectContext } from "../lib/projectContext";
+import { setStoredApiKey } from "../lib/layoutStorage";
 
 export function SidebarFooter() {
   const rootDir = useStore((s) => s.rootDir);
+  const apiKey = useStore((s) => s.apiKey);
+  const setApiKey = useStore((s) => s.setApiKey);
   const respondInSpanish = useStore((s) => s.respondInSpanish);
   const setRespondInSpanish = useStore((s) => s.setRespondInSpanish);
   const setOpenMarkdownPath = useStore((s) => s.setOpenMarkdownPath);
   const [brief, setBrief] = useState<string | null>(null);
   const [contentFiles, setContentFiles] = useState<string[]>([]);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState("");
 
   useEffect(() => {
     if (!rootDir) return;
@@ -65,6 +70,56 @@ export function SidebarFooter() {
           </ul>
         </div>
       )}
+      <div>
+        {showApiKeyInput ? (
+          <div className="space-y-1">
+            <input
+              type="password"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+              placeholder="sk-ant-..."
+              className="w-full rounded border border-border bg-bg px-2 py-1 text-xs"
+            />
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const trimmed = apiKeyInput.trim();
+                  if (trimmed) {
+                    setApiKey(trimmed);
+                    setStoredApiKey(trimmed);
+                  }
+                  setShowApiKeyInput(false);
+                  setApiKeyInput("");
+                }}
+                className="text-accent hover:underline text-xs"
+              >
+                Guardar
+              </button>
+              {apiKey && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowApiKeyInput(false);
+                    setApiKeyInput("");
+                  }}
+                  className="text-text-muted hover:underline text-xs"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowApiKeyInput(true)}
+            className="text-text-muted hover:text-text text-left"
+          >
+            {apiKey ? "API key configurada ✓" : "Configurar API key de Claude"}
+          </button>
+        )}
+      </div>
       <label className="flex items-center gap-2 cursor-pointer text-text-muted hover:text-text">
         <input
           type="checkbox"

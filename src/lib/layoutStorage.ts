@@ -35,3 +35,21 @@ export function setStoredRootDir(dir: string): void {
     // ignore
   }
 }
+
+const KEY_API_KEY = "muse-api-key";
+
+export function getStoredApiKey(): string | null {
+  try {
+    return localStorage.getItem(KEY_API_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredApiKey(key: string): void {
+  try {
+    localStorage.setItem(KEY_API_KEY, key);
+  } catch {
+    // ignore
+  }
+}

@@ -22,6 +22,7 @@ function slugFromFirstMessage(text: string): string {
 
 export function ChatPanel({ sessionId }: Props) {
   const session = useStore((s) => s.sessions[sessionId]);
+  const rootDir = useStore((s) => s.rootDir);
   const renameSession = useStore((s) => s.renameSession);
   const { sendMessage, abort } = useClaude(sessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,7 +44,8 @@ export function ChatPanel({ sessionId }: Props) {
       let toSend = trimmed;
 
       if (isFirst) {
-        const context = await loadProjectContext(session.cwd);
+        const contextDir = rootDir || session.cwd;
+        const context = contextDir ? await loadProjectContext(contextDir) : null;
         if (context) {
           toSend = `[Contexto del proyecto]\n${context}\n\n[Pregunta]\n${trimmed}`;
         }
@@ -53,7 +55,7 @@ export function ChatPanel({ sessionId }: Props) {
 
       sendMessage(toSend, toSend !== trimmed ? trimmed : undefined);
     },
-    [session, sessionId, sendMessage, renameSession],
+    [session, sessionId, sendMessage, renameSession, rootDir],
   );
 
   const handleExportChat = useCallback(async () => {

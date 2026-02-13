@@ -121,6 +121,9 @@ function handleMessage(raw: string) {
     case "abort":
       handleAbort(msg.sessionId);
       break;
+    case "set_api_key":
+      process.env.ANTHROPIC_API_KEY = msg.key;
+      break;
     case "shutdown":
       log("Shutting down");
       process.exit(0);

@@ -28,6 +28,8 @@ Crea un archivo `.env` en la raíz del proyecto (no se sube a git):
 
 ```env
 ANTHROPIC_API_KEY=sk-ant-api03-...
+# Opcional: carpeta del proyecto por defecto (p. ej. Luz de Luz). Si no está, la primera vez hay que elegir carpeta.
+# VITE_DEFAULT_PROJECT=/ruta/completa/a/tu/proyecto
 ```
 
 Para desarrollo, carga las variables antes de arrancar:

@@ -32,8 +32,11 @@ class SidecarBridge {
     });
   }
 
-  async start(): Promise<void> {
-    if (this.ready) return;
+  async start(apiKey?: string): Promise<void> {
+    if (this.ready) {
+      if (apiKey) await this.send({ type: "set_api_key", key: apiKey });
+      return;
+    }
     if (this.child) return this.readyPromise;
 
     // Get the app directory from Rust to resolve sidecar path
@@ -96,6 +99,7 @@ class SidecarBridge {
 
     try {
       await this.readyPromise;
+      if (apiKey) await this.send({ type: "set_api_key", key: apiKey });
     } finally {
       clearTimeout(timeout);
     }

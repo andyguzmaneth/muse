@@ -64,8 +64,12 @@ export function useClaude(sessionId: string | null) {
       const session = store.sessions[sessionId];
       if (!session) return;
 
+      if (!store.apiKey?.trim()) {
+        store.setSidecarError("Configura la API key de Claude en la barra lateral (abajo).");
+        return;
+      }
       try {
-        await sidecar.start();
+        await sidecar.start(store.apiKey.trim());
         store.setSidecarError(null);
       } catch (err) {
         store.setSidecarError(err instanceof Error ? err.message : String(err));
