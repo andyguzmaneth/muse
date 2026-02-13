@@ -48,10 +48,6 @@ export function AppLayout() {
     }
   }, [setRootDir]);
 
-  const handleFileSelect = useCallback((path: string) => {
-    console.log("File selected:", path);
-  }, []);
-
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -170,7 +166,7 @@ export function AppLayout() {
                 </button>
               </div>
               <div className="flex-1 overflow-hidden">
-                <FileTree onFileSelect={handleFileSelect} />
+                <FileTree />
               </div>
             </div>
             <div

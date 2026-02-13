@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { readTextFile } from "@tauri-apps/plugin-fs";
+import {
+  sharedMarkdownCodeComponent,
+  viewerMarkdownTableComponents,
+} from "../lib/markdownComponents";
 
 interface Props {
   filePath: string;
@@ -22,17 +24,13 @@ export function MarkdownViewerPanel({ filePath }: Props) {
       setError(null);
       try {
         const text = await readTextFile(filePath);
-        if (!cancelled) {
-          setContent(text);
-        }
+        if (!cancelled) setContent(text);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : String(err));
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -61,71 +59,12 @@ export function MarkdownViewerPanel({ filePath }: Props) {
 
   return (
     <div className="h-full overflow-auto bg-bg p-6">
-      <article className="md-viewer prose prose-sm max-w-none prose-headings:text-text prose-p:text-text prose-li:text-text prose-muse max-w-3xl mx-auto">
+      <article className="md-viewer prose prose-sm prose-muse max-w-3xl mx-auto">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-            blockquote({ children, ...rest }) {
-              return <blockquote {...rest}>{children}</blockquote>;
-            },
-            h1({ children, ...rest }) {
-              return <h1 {...rest}>{children}</h1>;
-            },
-            h2({ children, ...rest }) {
-              return <h2 {...rest}>{children}</h2>;
-            },
-            h3({ children, ...rest }) {
-              return <h3 {...rest}>{children}</h3>;
-            },
-            h4({ children, ...rest }) {
-              return <h4 {...rest}>{children}</h4>;
-            },
-            code({ className, children, ...rest }) {
-              const match = /language-(\w+)/.exec(className || "");
-              const codeString = String(children).replace(/\n$/, "");
-
-              if (match) {
-                return (
-                  <SyntaxHighlighter
-                    style={oneLight}
-                    language={match[1]}
-                    PreTag="div"
-                    customStyle={{
-                      borderRadius: "0.75rem",
-                      fontSize: "0.8rem",
-                      margin: "0.5rem 0",
-                      border: "1px solid #e5e3de",
-                      background: "#faf9f7",
-                    }}
-                  >
-                    {codeString}
-                  </SyntaxHighlighter>
-                );
-              }
-
-              return (
-                <code
-                  className="rounded-md bg-surface px-1.5 py-0.5 text-xs text-text font-medium"
-                  style={{ color: "#6b5b4e" }}
-                  {...rest}
-                >
-                  {children}
-                </code>
-              );
-            },
-            table({ children }) {
-              return (
-                <div className="overflow-x-auto">
-                  <table>{children}</table>
-                </div>
-              );
-            },
-            th({ children }) {
-              return <th>{children}</th>;
-            },
-            td({ children }) {
-              return <td>{children}</td>;
-            },
+            code: sharedMarkdownCodeComponent,
+            ...viewerMarkdownTableComponents,
           }}
         >
           {content ?? ""}
