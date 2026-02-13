@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #1a1a2e;
+  --color-bg-secondary: #16213e;
+  --color-bg-tertiary: #0f3460;
+  --color-surface: #1e293b;
+  --color-surface-hover: #334155;
+  --color-border: #334155;
+  --color-text: #e2e8f0;
+  --color-text-muted: #94a3b8;
+  --color-accent: #c9a96e;
+  --color-accent-hover: #d4b87a;
+  --color-user-bubble: #1e3a5f;
+  --color-assistant-bubble: #1e293b;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Dockview dark theme overrides */
+.dockview-theme-dark {
+  --dv-activegroup-visiblepanel-tab-background-color: var(--color-bg);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-bg-secondary);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-bg-secondary);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-bg-secondary);
+  --dv-tabs-and-actions-container-background-color: var(--color-bg-secondary);
+  --dv-group-view-background-color: var(--color-bg);
+  --dv-tab-font-size: 12px;
+  --dv-paneview-header-border-color: var(--color-border);
+  --dv-separator-border: var(--color-border);
+  --dv-color-accent: var(--color-accent);
+}
+
+/* Prose overrides for dark mode markdown */
+.prose-invert {
+  --tw-prose-body: var(--color-text);
+  --tw-prose-headings: var(--color-text);
+  --tw-prose-links: var(--color-accent);
+  --tw-prose-bold: var(--color-text);
+  --tw-prose-code: var(--color-accent);
+  --tw-prose-quotes: var(--color-text-muted);
+  --tw-prose-hr: var(--color-border);
+}

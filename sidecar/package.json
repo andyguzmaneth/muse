@@ -1,0 +1,18 @@
+{
+  "name": "muse-sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^1"
+  },
+  "devDependencies": {
+    "tsx": "^4",
+    "typescript": "^5.8"
+  }
+}
