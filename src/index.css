@@ -93,6 +93,115 @@ body,
   --tw-prose-hr: var(--color-border);
 }
 
+/* Markdown viewer: hierarchy, blockquotes, lists – fresh, minimalist, delicate */
+.md-viewer {
+  --md-accent: var(--color-accent);
+  --md-border: var(--color-border);
+  --md-surface: var(--color-surface);
+  --md-text: var(--color-text);
+  --md-text-muted: var(--color-text-muted);
+}
+.md-viewer h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--md-text);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--md-border);
+  line-height: 1.3;
+}
+.md-viewer h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--md-text);
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.35;
+}
+.md-viewer h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--md-text);
+  margin-top: 1.25rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.4;
+}
+.md-viewer h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--md-text-muted);
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+.md-viewer blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem 0.75rem 1.25rem;
+  border-left: 4px solid var(--md-accent);
+  background: var(--md-surface);
+  border-radius: 0 6px 6px 0;
+  color: var(--md-text-muted);
+  font-style: normal;
+  line-height: 1.6;
+}
+.md-viewer blockquote p:first-child { margin-top: 0; }
+.md-viewer blockquote p:last-child { margin-bottom: 0; }
+.md-viewer ul, .md-viewer ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+.md-viewer li {
+  margin: 0.25rem 0;
+  line-height: 1.55;
+}
+.md-viewer p {
+  margin: 0.6rem 0;
+  line-height: 1.6;
+}
+.md-viewer hr {
+  border: none;
+  border-top: 1px solid var(--md-border);
+  margin: 1.5rem 0;
+}
+.md-viewer strong {
+  font-weight: 600;
+  color: var(--md-text);
+}
+.md-viewer a {
+  color: var(--md-accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-taupe-light);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.md-viewer a:hover {
+  border-bottom-color: var(--md-accent);
+  color: var(--color-accent-hover);
+}
+.md-viewer table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 0.75rem 0;
+}
+.md-viewer th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: var(--md-text-muted);
+  border-bottom: 1px solid var(--md-border);
+  background: var(--md-surface);
+}
+.md-viewer td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--md-border);
+  color: var(--md-text);
+}
+.md-viewer tr:last-child td {
+  border-bottom: none;
+}
+
 /* Pacifico display font class */
 .font-display {
   font-family: "Pacifico", cursive;

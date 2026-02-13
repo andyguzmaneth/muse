@@ -61,10 +61,25 @@ export function MarkdownViewerPanel({ filePath }: Props) {
 
   return (
     <div className="h-full overflow-auto bg-bg p-6">
-      <article className="prose prose-sm max-w-none prose-headings:text-text prose-p:text-text prose-li:text-text prose-muse">
+      <article className="md-viewer prose prose-sm max-w-none prose-headings:text-text prose-p:text-text prose-li:text-text prose-muse max-w-3xl mx-auto">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
+            blockquote({ children, ...rest }) {
+              return <blockquote {...rest}>{children}</blockquote>;
+            },
+            h1({ children, ...rest }) {
+              return <h1 {...rest}>{children}</h1>;
+            },
+            h2({ children, ...rest }) {
+              return <h2 {...rest}>{children}</h2>;
+            },
+            h3({ children, ...rest }) {
+              return <h3 {...rest}>{children}</h3>;
+            },
+            h4({ children, ...rest }) {
+              return <h4 {...rest}>{children}</h4>;
+            },
             code({ className, children, ...rest }) {
               const match = /language-(\w+)/.exec(className || "");
               const codeString = String(children).replace(/\n$/, "");
@@ -100,24 +115,16 @@ export function MarkdownViewerPanel({ filePath }: Props) {
             },
             table({ children }) {
               return (
-                <div className="overflow-x-auto my-2">
-                  <table className="border-collapse border border-border text-sm">
-                    {children}
-                  </table>
+                <div className="overflow-x-auto">
+                  <table>{children}</table>
                 </div>
               );
             },
             th({ children }) {
-              return (
-                <th className="border border-border bg-surface px-3 py-1.5 text-left text-xs font-medium uppercase tracking-wide text-text-muted">
-                  {children}
-                </th>
-              );
+              return <th>{children}</th>;
             },
             td({ children }) {
-              return (
-                <td className="border border-border px-3 py-1.5">{children}</td>
-              );
+              return <td>{children}</td>;
             },
           }}
         >
