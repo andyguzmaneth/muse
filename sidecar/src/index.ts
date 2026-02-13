@@ -62,13 +62,13 @@ async function handleSendMessage(sessionId: string, message: string) {
           }
         }
         // Save the session ID for resume
-        if (msg.sessionId) {
-          session.conversationId = msg.sessionId;
+        if (msg.session_id) {
+          session.conversationId = msg.session_id;
         }
       } else if (msg.type === "result") {
         costUsd = msg.total_cost_usd ?? 0;
-        if (msg.sessionId) {
-          session.conversationId = msg.sessionId;
+        if (msg.session_id) {
+          session.conversationId = msg.session_id;
         }
       }
     }

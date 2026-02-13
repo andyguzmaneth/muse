@@ -16,7 +16,6 @@ export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
     if (!trimmed || isStreaming) return;
     onSend(trimmed);
     setText("");
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -40,8 +39,8 @@ export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
   }, []);
 
   return (
-    <div className="border-t border-border bg-bg-secondary p-3">
-      <div className="flex items-end gap-2">
+    <div className="border-t border-border-light bg-bg px-4 py-3">
+      <div className="flex items-end gap-3 max-w-3xl mx-auto">
         <textarea
           ref={textareaRef}
           value={text}
@@ -50,25 +49,25 @@ export function ChatInput({ onSend, onAbort, isStreaming, disabled }: Props) {
             handleInput();
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Ask Claude anything..."
+          placeholder="Write something..."
           disabled={disabled}
           rows={1}
-          className="flex-1 resize-none rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none disabled:opacity-50"
+          className="flex-1 resize-none rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text placeholder:text-text-light focus:border-accent focus:outline-none disabled:opacity-50 transition-colors"
         />
         {isStreaming ? (
           <button
             onClick={onAbort}
-            className="rounded-xl bg-red-600/80 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+            className="rounded-xl border border-rose bg-white px-4 py-2.5 text-sm font-medium text-rose hover:bg-rose/5 transition-colors"
           >
-            Stop
+            Detener
           </button>
         ) : (
           <button
             onClick={handleSend}
             disabled={!text.trim() || disabled}
-            className="rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-bg hover:bg-accent-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            Send
+            Enviar
           </button>
         )}
       </div>

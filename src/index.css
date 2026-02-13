@@ -1,18 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #1a1a2e;
-  --color-bg-secondary: #16213e;
-  --color-bg-tertiary: #0f3460;
-  --color-surface: #1e293b;
-  --color-surface-hover: #334155;
-  --color-border: #334155;
-  --color-text: #e2e8f0;
-  --color-text-muted: #94a3b8;
-  --color-accent: #c9a96e;
-  --color-accent-hover: #d4b87a;
-  --color-user-bubble: #1e3a5f;
-  --color-assistant-bubble: #1e293b;
+  /* Light mode - West Coast Catholic inspired */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #faf9f7;
+  --color-bg-tertiary: #f3f1ed;
+  --color-surface: #f7f6f3;
+  --color-surface-hover: #eeedea;
+  --color-border: #e5e3de;
+  --color-border-light: #f0eeea;
+  --color-text: #31312f;
+  --color-text-muted: #8c8b88;
+  --color-text-light: #b0afab;
+  --color-accent: #8ca5ad;
+  --color-accent-hover: #7a959e;
+  --color-taupe: #c9c8b9;
+  --color-taupe-light: #dddcd0;
+  --color-user-bubble: #8ca5ad;
+  --color-user-bubble-text: #ffffff;
+  --color-assistant-bubble: #f3f1ed;
+  --color-rose: #d4a0a0;
+  --color-sage: #a8b5a0;
+  --color-cream: #f5f0e8;
 }
 
 html,
@@ -24,17 +33,14 @@ body,
   overflow: hidden;
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: "Figtree", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -44,30 +50,68 @@ body,
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+  background: var(--color-text-light);
 }
 
-/* Dockview dark theme overrides */
-.dockview-theme-dark {
+/* Dockview light theme overrides */
+.dockview-theme-light {
   --dv-activegroup-visiblepanel-tab-background-color: var(--color-bg);
   --dv-activegroup-hiddenpanel-tab-background-color: var(--color-bg-secondary);
+  --dv-activegroup-visiblepanel-tab-color: var(--color-text);
+  --dv-activegroup-hiddenpanel-tab-color: var(--color-text-muted);
   --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-bg-secondary);
   --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-bg-secondary);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--color-text-muted);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-text-light);
   --dv-tabs-and-actions-container-background-color: var(--color-bg-secondary);
   --dv-group-view-background-color: var(--color-bg);
-  --dv-tab-font-size: 12px;
+  --dv-tab-font-size: 13px;
   --dv-paneview-header-border-color: var(--color-border);
   --dv-separator-border: var(--color-border);
   --dv-color-accent: var(--color-accent);
+  --dv-background-color: var(--color-bg);
+  --dv-tab-close-icon: var(--color-text-muted);
 }
 
-/* Prose overrides for dark mode markdown */
-.prose-invert {
+/* Hide dockview's built-in tab bar (we render our own in SessionManager) */
+.dockview-theme-light .dv-tabs-and-actions-container {
+  display: none !important;
+  height: 0 !important;
+}
+.dockview-theme-light .dv-content-container {
+  top: 0 !important;
+}
+
+/* Prose overrides for light mode markdown */
+.prose-muse {
   --tw-prose-body: var(--color-text);
   --tw-prose-headings: var(--color-text);
   --tw-prose-links: var(--color-accent);
   --tw-prose-bold: var(--color-text);
-  --tw-prose-code: var(--color-accent);
+  --tw-prose-code: #6b5b4e;
   --tw-prose-quotes: var(--color-text-muted);
   --tw-prose-hr: var(--color-border);
+}
+
+/* Pacifico display font class */
+.font-display {
+  font-family: "Pacifico", cursive;
+}
+
+/* Gentle fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Gentle pulse for loading */
+@keyframes gentlePulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.animate-gentle-pulse {
+  animation: gentlePulse 2s ease-in-out infinite;
 }

@@ -1,4 +1,5 @@
 import { Child, Command } from "@tauri-apps/plugin-shell";
+import { invoke } from "@tauri-apps/api/core";
 
 type OutboundMessage =
   | { type: "session_created"; id: string }
@@ -21,31 +22,28 @@ class SidecarBridge {
   private ready = false;
   private readyPromise: Promise<void>;
   private resolveReady: (() => void) | null = null;
+  private rejectReady: ((err: Error) => void) | null = null;
   private buffer = "";
 
   constructor() {
-    this.readyPromise = new Promise((resolve) => {
+    this.readyPromise = new Promise((resolve, reject) => {
       this.resolveReady = resolve;
+      this.rejectReady = reject;
     });
   }
 
   async start(): Promise<void> {
-    // Spawn the sidecar as a Node.js process
-    // In dev: use tsx to run TypeScript directly
-    // In prod: use the compiled JS
-    const sidecarPath = this.getSidecarPath();
+    // Get the app directory from Rust to resolve sidecar path
+    const projectDir = await invoke<string>("get_project_dir");
+    const sidecarScript = `${projectDir}/sidecar/dist/index.js`;
 
-    const cmd = Command.create("node", [
-      "--import",
-      "tsx",
-      sidecarPath,
-    ]);
+    console.log("[sidecar] Starting:", sidecarScript);
+
+    const cmd = Command.create("node", [sidecarScript]);
 
     cmd.stdout.on("data", (line: string) => {
-      // Accumulate data and process complete lines
       this.buffer += line;
       const lines = this.buffer.split("\n");
-      // Keep the last incomplete line in the buffer
       this.buffer = lines.pop() ?? "";
 
       for (const l of lines) {
@@ -70,22 +68,34 @@ class SidecarBridge {
 
     cmd.on("error", (err: string) => {
       console.error("[sidecar error]", err);
+      if (!this.ready) {
+        this.rejectReady?.(new Error(`Sidecar failed: ${err}`));
+      }
     });
 
     cmd.on("close", (data) => {
       console.log("[sidecar closed]", data);
+      if (!this.ready) {
+        this.rejectReady?.(new Error("Sidecar exited before ready"));
+      }
       this.child = null;
       this.ready = false;
     });
 
     this.child = await cmd.spawn();
-    await this.readyPromise;
-  }
 
-  private getSidecarPath(): string {
-    // In development, point to the sidecar source
-    // This path is relative to where the Tauri app runs
-    return new URL("../../sidecar/src/index.ts", import.meta.url).pathname;
+    // Timeout after 10 seconds
+    const timeout = setTimeout(() => {
+      if (!this.ready) {
+        this.rejectReady?.(new Error("Sidecar startup timed out (10s)"));
+      }
+    }, 10_000);
+
+    try {
+      await this.readyPromise;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   async send(msg: Record<string, unknown>): Promise<void> {

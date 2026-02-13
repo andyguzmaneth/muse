@@ -24,6 +24,10 @@ interface AppState {
   // File tree
   rootDir: string | null;
 
+  // Markdown viewer: when set, SessionManager opens a tab for this path then clears it
+  openMarkdownPath: string | null;
+  setOpenMarkdownPath: (path: string | null) => void;
+
   // Settings
   apiKey: string;
   model: string;
@@ -35,6 +39,7 @@ interface AppState {
   addMessage: (sessionId: string, message: ChatMessage) => void;
   appendToLastMessage: (sessionId: string, text: string) => void;
   setStreaming: (sessionId: string, streaming: boolean) => void;
+  renameSession: (sessionId: string, name: string) => void;
   addCost: (sessionId: string, cost: number) => void;
   setRootDir: (dir: string) => void;
   setApiKey: (key: string) => void;
@@ -47,6 +52,8 @@ export const useStore = create<AppState>((set) => ({
   sessions: {},
   activeSessionId: null,
   rootDir: null,
+  openMarkdownPath: null,
+  setOpenMarkdownPath: (path) => set({ openMarkdownPath: path }),
   apiKey: "",
   model: "sonnet",
 
@@ -127,6 +134,19 @@ export const useStore = create<AppState>((set) => ({
         sessions: {
           ...state.sessions,
           [sessionId]: { ...session, isStreaming: streaming },
+        },
+      };
+    });
+  },
+
+  renameSession: (sessionId: string, name: string) => {
+    set((state) => {
+      const session = state.sessions[sessionId];
+      if (!session) return state;
+      return {
+        sessions: {
+          ...state.sessions,
+          [sessionId]: { ...session, name },
         },
       };
     });

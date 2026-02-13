@@ -47,6 +47,18 @@ export function FileTree({ onFileSelect }: Props) {
     [onFileSelect],
   );
 
+  const setOpenMarkdownPath = useStore((s) => s.setOpenMarkdownPath);
+  const handleActivate = useCallback(
+    (node: { data: FileNode }) => {
+      if (node.data.isFolder) return;
+      const name = node.data.name.toLowerCase();
+      if (name.endsWith(".md")) {
+        setOpenMarkdownPath(node.data.id);
+      }
+    },
+    [setOpenMarkdownPath],
+  );
+
   if (!rootDir) {
     return (
       <div className="flex h-full items-center justify-center p-4 text-center text-text-muted text-sm">
@@ -65,9 +77,6 @@ export function FileTree({ onFileSelect }: Props) {
 
   return (
     <div className="h-full">
-      <div className="border-b border-border px-3 py-2 text-xs text-text-muted font-medium uppercase tracking-wide">
-        {rootDir.split("/").pop()}
-      </div>
       <Tree<FileNode>
         data={tree}
         idAccessor="id"
@@ -77,6 +86,7 @@ export function FileTree({ onFileSelect }: Props) {
         indent={16}
         rowHeight={28}
         onSelect={handleSelect}
+        onActivate={handleActivate}
       >
         {FileNodeRenderer}
       </Tree>
